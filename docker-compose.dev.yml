@@ -79,3 +79,5 @@ services:
     env_file:
       - .env
     restart: always
+    volumes:
+      - ./:/opt/app-root/src

@@ -108,80 +108,147 @@ else:
     logging.warning("LOGIN DISABLED")
     login_navbar = [html.Div()]
 
-# navbar for top of screen
+# Clean navbar matching target design - no borders or lines
 navbar = dbc.Navbar(
     dbc.Container(
         [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [
+            html.Div(
+                style={
+                    "display": "flex",
+                    "flexDirection": "row",
+                    "alignItems": "center",
+                    "justifyContent": "space-between",
+                    "width": "100%",
+                    "height": "32px",
+                    "gap": "48px",
+                },
+                children=[
+                    # Logo section
+                    html.Div(
+                        style={"display": "flex", "flexDirection": "row", "alignItems": "center", "gap": "10.41px"},
+                        children=[
                             html.Img(
                                 src=dash.get_asset_url("8knot-logo-vertical.png"),
-                                height="40px",
+                                style={"width": "23.79px", "height": "22.31px"},
                             ),
-                            dbc.NavbarBrand(
-                                "8Knot",
-                                id="navbar-title",
-                                className="ms-2",
+                            html.Span(
+                                "8KNOT",
+                                style={
+                                    "fontFamily": "Inter",
+                                    "fontWeight": "700",
+                                    "fontSize": "16px",
+                                    "color": "#222D33",
+                                },
+                            ),
+                            html.Div(
+                                "CHAOSS",
+                                style={
+                                    "background": "#222D33",
+                                    "borderRadius": "16.22px",
+                                    "padding": "6.49px",
+                                    "color": "#FFFFFF",
+                                    "fontSize": "10px",
+                                    "fontWeight": "500",
+                                },
                             ),
                         ],
-                        width={"size": "auto"},
                     ),
-                    dbc.Col(
-                        [
-                            dbc.Nav(
+                    # Navigation items
+                    html.Div(
+                        style={
+                            "display": "flex",
+                            "flexDirection": "row",
+                            "justifyContent": "center",
+                            "alignItems": "center",
+                            "gap": "24px",
+                            "flexGrow": "1",
+                        },
+                        children=[
+                            dbc.NavLink(
+                                "Welcome",
+                                href="/",
+                                active="exact",
+                                style={
+                                    "color": "#222D33",
+                                    "fontFamily": "Inter",
+                                    "fontWeight": "500",
+                                    "fontSize": "16px",
+                                    "borderBottom": "1px solid #D61B5E",
+                                    "padding": "4px 0px",
+                                    "textDecoration": "none",
+                                },
+                            ),
+                            dbc.DropdownMenu(
                                 [
-                                    dbc.NavLink("Welcome", href="/", active="exact"),
-                                    dbc.NavLink("Repo Overview", href="/repo_overview", active="exact"),
-                                    dbc.NavLink(
-                                        "Contributions",
-                                        href="/contributions",
-                                        active="exact",
+                                    dbc.DropdownMenuItem("Repo Overview", href="/repo_overview"),
+                                    dbc.DropdownMenuItem("Contributions", href="/contributions"),
+                                    dbc.DropdownMenuItem("Contributors - Behavior", href="/contributors/behavior"),
+                                    dbc.DropdownMenuItem(
+                                        "Contributors - Types", href="/contributors/contribution_types"
                                     ),
-                                    dbc.DropdownMenu(
-                                        [
-                                            dbc.DropdownMenuItem(
-                                                "Behavior",
-                                                href="/contributors/behavior",
-                                            ),
-                                            dbc.DropdownMenuItem(
-                                                "Contribution Types",
-                                                href="/contributors/contribution_types",
-                                            ),
-                                        ],
-                                        label="Contributors",
-                                        nav=True,
-                                    ),
-                                    dbc.NavLink(
-                                        "Affiliation",
-                                        href="/affiliation",
-                                        active="exact",
-                                    ),
-                                    dbc.NavLink("CHAOSS", href="/chaoss", active="exact"),
-                                    # dbc.NavLink("Codebase", href="/codebase", active="exact"),
-                                    dbc.NavLink("Info", href="/info", active="exact"),
+                                    dbc.DropdownMenuItem("Affiliation", href="/affiliation"),
+                                    dbc.DropdownMenuItem("CHAOSS", href="/chaoss"),
                                 ],
-                                navbar=True,
-                            )
+                                label="Visualizations",
+                                nav=True,
+                                style={
+                                    "color": "#222D33",
+                                    "fontFamily": "Inter",
+                                    "fontWeight": "500",
+                                    "fontSize": "16px",
+                                    "padding": "4px 0px",
+                                },
+                            ),
+                            dbc.NavLink(
+                                "Repo list",
+                                href="/repo_overview",
+                                active="exact",
+                                style={
+                                    "color": "#222D33",
+                                    "fontFamily": "Inter",
+                                    "fontWeight": "500",
+                                    "fontSize": "16px",
+                                    "padding": "4px 0px",
+                                    "textDecoration": "none",
+                                },
+                            ),
                         ],
-                        width={"size": "auto"},
+                    ),
+                    # Login section
+                    html.Div(
+                        style={"display": "flex", "flexDirection": "row", "alignItems": "center", "gap": "4px"},
+                        children=[
+                            html.I(
+                                className="fas fa-user", style={"width": "32px", "height": "32px", "color": "#292D32"}
+                            ),
+                            html.Span(
+                                "Log in",
+                                style={
+                                    "fontFamily": "Inter",
+                                    "fontWeight": "400",
+                                    "fontSize": "16px",
+                                    "color": "#222D33",
+                                },
+                            ),
+                        ],
                     ),
                 ],
-                align="center",
-                className="g-0",
-                justify="start",
             ),
-            # packaged as a list to make linter happy-
-            # it keeps making the login_navpar page-wrap as a tuple,
-            # so I wrapped it in a list.
-            login_navbar[0],
+            login_navbar[0] if login_navbar else html.Div(),
         ],
         fluid=True,
+        style={"border": "none"},
     ),
-    color="primary",
-    dark=True,
+    style={
+        "background": "#FFFFFF",
+        "border": "none",
+        "borderBottom": "none",
+        "borderTop": "none",
+        "boxShadow": "none",
+        "padding": "8px 0",
+    },
     sticky="top",
+    className="navbar-no-border",
 )
 
 navbar_bottom = dbc.NavbarSimple(
@@ -192,6 +259,7 @@ navbar_bottom = dbc.NavbarSimple(
                 href="https://github.com/oss-aspen/8Knot/issues/new?assignees=&labels=enhancement%2Cvisualization&template=visualizations.md",
                 external_link="True",
                 target="_blank",
+                style={"color": "white", "fontSize": "0.9rem"},
             )
         ),
         dbc.NavItem(
@@ -200,6 +268,7 @@ navbar_bottom = dbc.NavbarSimple(
                 href="https://github.com/oss-aspen/8Knot/issues/new?assignees=&labels=bug&template=bug_report.md",
                 external_link="True",
                 target="_blank",
+                style={"color": "white", "fontSize": "0.9rem"},
             )
         ),
         dbc.NavItem(
@@ -208,134 +277,50 @@ navbar_bottom = dbc.NavbarSimple(
                 href="https://github.com/oss-aspen/8Knot/issues/new?assignees=&labels=augur&template=augur_load.md",
                 external_link="True",
                 target="_blank",
+                style={"color": "white", "fontSize": "0.9rem"},
             )
         ),
     ],
     brand="",
     brand_href="#",
-    color="primary",
-    dark=True,
+    style={
+        "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+        "border": "none",
+        "boxShadow": "0 -2px 10px rgba(0,0,0,0.1)",
+    },
     fluid=True,
-)
-
-search_bar = html.Div(
-    [
-        # Add client-side caching component
-        dcc.Store(id="cached-options", storage_type="session"),
-        # Hidden div to trigger cache initialization on page load
-        html.Div(id="cache-init-trigger", style={"display": "none"}),
-        # Storage quota warning
-        dcc.Store(id="search-cache-init-hidden", storage_type="session"),
-        # Warning alert for when browser storage quota is exceeded
-        html.Div(
-            dbc.Alert(
-                [
-                    html.I(className="quota-warning-icon"),  # Warning icon
-                    "Browser storage limit reached. Search will use a reduced cache which may slightly impact performance. All features will still work normally.",
-                ],
-                id="storage-quota-warning",  # ID used by Javascript to show/hide this alert
-                color="warning",
-                dismissable=True,
-                style={"display": "none"},  # Initially hidden, controlled by JavaScript
-                className="mt-2 mb-0",
-            ),
-            className="search-bar-component",
-        ),
-        dbc.Stack(
-            [
-                html.Div(
-                    [
-                        dmc.MultiSelect(
-                            id="projects",
-                            searchable=True,
-                            clearable=True,
-                            nothingFound="No matching repos/orgs.",
-                            variant="filled",
-                            debounce=100,  # debounce time for the search input, since we're implementing client-side caching, we can use a faster debounce
-                            data=[augur.initial_multiselect_option()],
-                            value=[augur.initial_multiselect_option()["value"]],
-                            style={"fontSize": 16, "zIndex": 9999},  # Updated: moved zIndex to style
-                            maxDropdownHeight=300,  # limits the dropdown menu's height to 300px
-                            # Removed: dropdownPosition and transitionDuration no longer supported in v2.1.0
-                            className="searchbar-dropdown",
-                        ),
-                        dbc.Alert(
-                            children='Please ensure that your spelling is correct. \
-                                If your selection definitely isn\'t present, please request that \
-                                it be loaded using the help button "REPO/ORG Request" \
-                                in the bottom right corner of the screen.',
-                            id="help-alert",
-                            dismissable=True,
-                            fade=True,
-                            is_open=False,
-                            color="info",
-                        ),
-                        dbc.Alert(
-                            children="List of repos",
-                            id="repo-list-alert",
-                            dismissable=True,
-                            fade=True,
-                            is_open=False,
-                            color="light",
-                            # if number of repos is large, render as a scrolling window
-                            style={"overflow-y": "scroll", "max-height": "440px"},
-                        ),
-                    ],
-                    style={
-                        "width": "50%",
-                        "paddingRight": "10px",
-                    },
-                ),
-                dbc.Button(
-                    "Search",
-                    id="search",
-                    n_clicks=0,
-                    size="md",
-                ),
-                dbc.Button(
-                    "Help",
-                    id="search-help",
-                    n_clicks=0,
-                    size="md",
-                ),
-                dbc.Button(
-                    "Repo List",
-                    id="repo-list-button",
-                    n_clicks=0,
-                    size="md",
-                ),
-                dbc.Switch(
-                    id="bot-switch",
-                    label="GitHub Bot Filter",
-                    value=True,
-                    input_class_name="botlist-filter-switch",
-                    style={"fontSize": 18},
-                ),
-            ],
-            direction="horizontal",
-            style={
-                "width": "70%",
-            },
-        ),
-    ]
 )
 
 layout = dbc.Container(
     [
-        # componets to store data from queries
+        # Custom CSS to remove all navbar borders - using proper Dash method
+        html.Script(
+            """
+            // Add CSS to remove navbar borders
+            const style = document.createElement('style');
+            style.textContent = `
+                .navbar, .navbar-no-border {
+                    border: none !important;
+                    border-bottom: none !important;
+                    border-top: none !important;
+                    box-shadow: none !important;
+                }
+                .navbar .container-fluid {
+                    border: none !important;
+                }
+                .nav-link {
+                    border: none !important;
+                }
+            `;
+            document.head.appendChild(style);
+            """
+        ),
+        # Job data storage for query management (required for the application)
         dcc.Store(id="repo-choices", storage_type="session", data=[]),
-        # components to store job-ids for the worker queue
         dcc.Store(id="job-ids", storage_type="session", data=[]),
         dcc.Store(id="user-group-loading-signal", data="", storage_type="memory"),
         dcc.Location(id="url"),
         # Add client-side script to handle storage quota issues
-        # This script does two things:
-        # 1. Listens for global JavaScript errors related to storage quota being exceeded.
-        #    If such an error occurs, finds the element with id 'storage-quota-warning'
-        #    and makes it visible to alert the user.
-        # 2. Tests if sessionStorage can store a 512KB string.
-        #    If the test fails (due to quota limits), it displays the warning.
-        # The user will see the warning if the browser's session storage is full
         html.Script(
             """
             window.addEventListener('error', function(event) {
@@ -370,41 +355,13 @@ layout = dbc.Container(
         navbar,
         # Add login banner overlay (will be positioned via CSS)
         login_banner if login_banner else html.Div(),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
-                        dbc.Label(
-                            "Select GitHub repos or orgs:",
-                            html_for="projects",
-                            width="auto",
-                            size="lg",
-                        ),
-                        search_bar,
-                        dcc.Loading(
-                            children=[html.Div(id="results-output-container", className="mb-4")],
-                            color="#119DFF",
-                            type="dot",
-                            fullscreen=True,
-                        ),
-                        dcc.Loading(
-                            dbc.Badge(
-                                children="Data Loaded",
-                                id="data-badge",
-                                color="#436755",
-                                className="me-1",
-                                style={"marginBottom": ".5%"},
-                                text_color="dark",
-                            ),
-                            type="cube",
-                            color="#436755",
-                        ),
-                        # where our page will be rendered
-                        dash.page_container,
-                    ],
-                ),
+        # Main content area
+        html.Div(
+            style={"minHeight": "100vh", "padding": "0"},
+            children=[
+                # where our page will be rendered
+                dash.page_container,
             ],
-            justify="start",
         ),
         navbar_bottom,
     ],
