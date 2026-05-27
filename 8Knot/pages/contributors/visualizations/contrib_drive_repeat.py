@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 import logging
 import plotly.express as px
-from pages.utils.graph_utils import color_seq
+from pages.utils.graph_utils import color_seq, create_share_button
 from pages.utils.job_utils import nodata_graph
 from queries.contributors_query import contributors_query as ctq
 import time
@@ -109,6 +109,7 @@ gc_contrib_drive_repeat = dbc.Card(
                                     width="auto",
                                     style={"paddingTop": ".5em"},
                                 ),
+                                create_share_button(PAGE, VIZ_ID),
                             ],
                             align="center",
                         ),

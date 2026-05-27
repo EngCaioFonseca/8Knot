@@ -9,7 +9,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import get_graph_time_values, baby_blue
+from pages.utils.graph_utils import get_graph_time_values, baby_blue, create_share_button
 from queries.contributors_query import contributors_query as ctq
 from pages.utils.job_utils import nodata_graph
 import time
@@ -38,6 +38,7 @@ gc_contrib_importance_pie = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

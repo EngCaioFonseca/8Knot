@@ -1,3 +1,4 @@
+from pages.utils.graph_utils import create_share_button
 from dash import html, dcc, callback
 import dash
 import dash_bootstrap_components as dbc
@@ -37,6 +38,7 @@ gc_ossf_scorecard = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

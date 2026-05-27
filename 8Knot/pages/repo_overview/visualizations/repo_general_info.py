@@ -7,7 +7,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import get_graph_time_values, color_seq
+from pages.utils.graph_utils import get_graph_time_values, color_seq, create_share_button
 from queries.repo_info_query import repo_info_query as riq
 
 # from queries.repo_files_query import repo_files_query as rfq #TODO: run back on when the query hang is fixed
@@ -26,12 +26,16 @@ gc_repo_general_info = dbc.Card(
         dbc.CardBody(
             [
                 dbc.Row(
-                    dbc.Col(
-                        html.H3(
-                            "Repo General Info",
-                            className="card-title",
+                    [
+                        dbc.Col(
+                            html.H3(
+                                "Repo General Info",
+                                className="card-title",
+                            ),
                         ),
-                    ),
+                        create_share_button(PAGE, VIZ_ID),
+                    ],
+                    align="center",
                 ),
                 dcc.Loading(
                     html.Div(id=f"{PAGE}-{VIZ_ID}", style={"marginTop": "20px"}),

@@ -7,7 +7,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import baby_blue
+from pages.utils.graph_utils import baby_blue, create_share_button
 from queries.package_version_query import package_version_query as pvq
 from pages.utils.job_utils import nodata_graph
 import time
@@ -34,6 +34,7 @@ gc_package_version = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 import logging
 import plotly.express as px
-from pages.utils.graph_utils import get_graph_time_values, baby_blue
+from pages.utils.graph_utils import get_graph_time_values, baby_blue, create_share_button
 from queries.commits_query import commits_query as cmq
 from pages.utils.job_utils import nodata_graph
 import time
@@ -37,6 +37,7 @@ gc_commits_over_time = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

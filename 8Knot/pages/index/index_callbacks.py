@@ -7,12 +7,15 @@ import json
 from celery.result import AsyncResult
 import dash_bootstrap_components as dbc
 import dash
-from dash import callback
+from dash import callback, ctx
 from dash.dependencies import Input, Output, State, MATCH
 from app import augur
 from flask_login import current_user
 from cache_manager.cache_manager import CacheManager as cm
 import cache_manager.cache_facade as cf
+import cache_manager.url_state as url_state
+import cache_manager.share_manager as share_manager
+from pages.utils.url_utils import validate_target, extract_url_params, compose_short_url, MAX_REPOS_PER_SHARE
 from queries.issues_query import issues_query as iq
 from queries.commits_query import commits_query as cq
 from queries.contributors_query import contributors_query as cnq
@@ -795,3 +798,102 @@ else:
         [Output("nav-login-container", "children")],
         Input("url", "href"),
     )(_login_username_button_disabled)
+
+
+# ---------------------------------------------------------------------------
+# Share URL: load handler
+# Fires on every page load. When ?s= or ?state= is present in the URL,
+# decode the state and populate repo-choices + navigate to the right page.
+# ---------------------------------------------------------------------------
+@callback(
+    Output("repo-choices", "data", allow_duplicate=True),
+    Output("url", "pathname", allow_duplicate=True),
+    Output("share-load-toast", "is_open"),
+    Output("share-load-toast", "children"),
+    Input("url", "search"),
+    State("url", "pathname"),
+    prevent_initial_call=True,
+)
+def handle_share_url_load(search, pathname):
+    params = extract_url_params(search)
+    short_id = params["short_id"]
+    raw_state = params["state"]
+
+    if not short_id and not raw_state:
+        return dash.no_update, dash.no_update, False, ""
+
+    # Resolve short ID → encoded state string (DB lookup)
+    if short_id:
+        raw_state = share_manager.expand(short_id)
+        if raw_state is None:
+            return dash.no_update, dash.no_update, True, "This share link has expired or could not be found."
+
+    # Decode state blob (works for both ?s= and ?state= paths)
+    state = url_state.decode_state(raw_state)
+    if state is None:
+        return dash.no_update, dash.no_update, True, "This share link uses an outdated format and cannot be loaded."
+
+    target_path = state.get("pathname", "/")
+    graph_id = state.get("graph_id")
+    repo_ids = state.get("repo_ids", [])
+
+    is_valid, redirect = validate_target(target_path, graph_id)
+    if not is_valid:
+        if redirect:
+            new_path, _ = redirect
+            return repo_ids, new_path, True, "This visualization has moved. Redirecting to its new location."
+        return dash.no_update, "/", True, "The visualization in this share link no longer exists."
+
+    return repo_ids, target_path, False, ""
+
+
+# ---------------------------------------------------------------------------
+# Share URL: create handler
+# Pattern-matching callback – fires when ANY share button is clicked.
+# Generates a short URL and opens the share modal.
+# ---------------------------------------------------------------------------
+@callback(
+    Output("share-url-store", "data"),
+    Output("share-url-display", "value"),
+    Output("share-modal", "is_open"),
+    Output("share-load-toast", "is_open", allow_duplicate=True),
+    Output("share-load-toast", "children", allow_duplicate=True),
+    Input({"type": "share-btn", "graph": MATCH, "page": MATCH}, "n_clicks"),
+    State("repo-choices", "data"),
+    State("url", "pathname"),
+    State("url", "href"),
+    prevent_initial_call=True,
+)
+def create_share_link(n_clicks, repo_ids, pathname, href):
+    if not n_clicks:
+        return dash.no_update, dash.no_update, dash.no_update, False, ""
+
+    if not repo_ids:
+        return dash.no_update, "", True, True, "Select repos in the search bar before sharing."
+
+    if len(repo_ids) > MAX_REPOS_PER_SHARE:
+        return (
+            dash.no_update, "", True,
+            True, f"Too many repos selected (max {MAX_REPOS_PER_SHARE}). Narrow your search before sharing.",
+        )
+
+    graph_id = ctx.triggered_id["graph"]  # already formatted as "{page}-{viz_id}"
+
+    encoded = url_state.encode_state(
+        repo_ids=repo_ids,
+        org_names=[],
+        pathname=pathname,
+        graph_id=graph_id,
+    )
+
+    try:
+        short_id = share_manager.shorten(encoded)
+    except Exception as e:
+        logging.error(f"create_share_link: failed to shorten URL: {e}")
+        return dash.no_update, "", False, True, "Could not generate share link. Please try again."
+
+    # strip query/fragment from href to get just the origin + path prefix
+    base = href.split(pathname)[0] if pathname in href else href
+    share_url = compose_short_url(base, short_id, pathname, graph_id)
+
+    return share_url, share_url, True, False, ""

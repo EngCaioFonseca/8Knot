@@ -1,4 +1,6 @@
 import datetime as dt
+import dash_bootstrap_components as dbc
+from dash import html
 
 # list of graph color hex
 color_seq = [
@@ -78,3 +80,27 @@ def get_graph_time_values(interval):
         period = "M12"
 
     return x_r, x_name, hover, period
+
+
+def create_share_button(page: str, viz_id: str) -> dbc.Col:
+    """Return a share button column for use in a graph card's control row.
+
+    The button ID uses a pattern-matching dict so a single callback in
+    index_callbacks.py handles all share buttons without per-graph wiring.
+
+    Args:
+        page:   The PAGE constant of the visualization (e.g. "contributions").
+        viz_id: The VIZ_ID constant of the visualization (e.g. "pr-staleness").
+    """
+    return dbc.Col(
+        dbc.Button(
+            [html.I(className="bi bi-share me-1"), "Share"],
+            id={"type": "share-btn", "graph": f"{page}-{viz_id}", "page": page},
+            color="outline-secondary",
+            size="sm",
+            className="share-graph-btn",
+            title="Copy a short link to this graph with the current repo selection",
+        ),
+        width="auto",
+        style={"paddingTop": ".5em"},
+    )

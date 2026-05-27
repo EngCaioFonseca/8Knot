@@ -7,7 +7,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import baby_blue
+from pages.utils.graph_utils import baby_blue, create_share_button
 from queries.commits_query import commits_query as cmq
 import cache_manager.cache_facade as cf
 from pages.utils.job_utils import nodata_graph
@@ -39,6 +39,7 @@ gc_contrib_activity_cycle = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

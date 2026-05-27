@@ -1,3 +1,4 @@
+from pages.utils.graph_utils import create_share_button
 from dash import html, dcc, callback
 import dash
 import dash_bootstrap_components as dbc
@@ -111,6 +112,7 @@ graph_loading = html.Div(
                             width="auto",
                             style={"paddingTop": ".5em"},
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                 ),

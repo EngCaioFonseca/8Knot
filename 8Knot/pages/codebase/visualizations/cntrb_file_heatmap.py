@@ -8,7 +8,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import get_graph_time_values, color_seq
+from pages.utils.graph_utils import get_graph_time_values, color_seq, create_share_button
 from queries.contributors_query import contributors_query as cnq
 from queries.cntrb_per_file_query import cntrb_per_file_query as cpfq
 from queries.repo_files_query import repo_files_query as rfq
@@ -95,6 +95,7 @@ graph_loading = html.Div(
                             width="auto",
                             style={"paddingTop": ".5em"},
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                 ),

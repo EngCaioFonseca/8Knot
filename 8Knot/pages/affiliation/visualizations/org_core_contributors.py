@@ -7,7 +7,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import baby_blue
+from pages.utils.graph_utils import baby_blue, create_share_button
 from queries.affiliation_query import affiliation_query as aq
 import io
 from pages.utils.job_utils import nodata_graph
@@ -41,6 +41,7 @@ gc_org_core_contributors = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

@@ -8,7 +8,7 @@ import pandas as pd
 import logging
 from dateutil.relativedelta import *  # type: ignore
 import plotly.express as px
-from pages.utils.graph_utils import get_graph_time_values, color_seq
+from pages.utils.graph_utils import get_graph_time_values, color_seq, create_share_button
 from pages.utils.job_utils import nodata_graph
 from queries.prs_query import prs_query as prq
 import time
@@ -127,6 +127,7 @@ gc_pr_staleness = dbc.Card(
                                     width="auto",
                                     style={"paddingTop": ".5em"},
                                 ),
+                                create_share_button(PAGE, VIZ_ID),
                             ],
                             align="center",
                         ),

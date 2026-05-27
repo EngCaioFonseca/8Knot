@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import logging
 from dateutil.relativedelta import *  # type: ignore
-from pages.utils.graph_utils import get_graph_time_values, color_seq
+from pages.utils.graph_utils import get_graph_time_values, color_seq, create_share_button
 from queries.contributors_query import contributors_query as ctq
 import io
 from pages.utils.job_utils import nodata_graph
@@ -141,6 +141,7 @@ gc_lottery_factor_over_time = dbc.Card(
                                     width="auto",
                                     style={"paddingTop": ".5em"},
                                 ),
+                                create_share_button(PAGE, VIZ_ID),
                             ],
                             align="center",
                         ),

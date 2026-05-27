@@ -6,7 +6,7 @@ from dash.dependencies import Input, Output, State
 import pandas as pd
 import logging
 import plotly.express as px
-from pages.utils.graph_utils import color_seq
+from pages.utils.graph_utils import color_seq, create_share_button
 from queries.contributors_query import contributors_query as ctq
 import time
 from pages.utils.job_utils import nodata_graph
@@ -45,12 +45,18 @@ gc_first_time_contributions = dbc.Card(
                     dcc.Graph(id=f"{PAGE}-{VIZ_ID}"),
                 ),
                 dbc.Row(
-                    dbc.Button(
-                        "About Graph",
-                        id=f"popover-target-{PAGE}-{VIZ_ID}",
-                        color="secondary",
-                        size="small",
-                    ),
+                    [
+                        dbc.Col(
+                            dbc.Button(
+                                "About Graph",
+                                id=f"popover-target-{PAGE}-{VIZ_ID}",
+                                color="secondary",
+                                size="sm",
+                            ),
+                            width="auto",
+                        ),
+                        create_share_button(PAGE, VIZ_ID),
+                    ],
                     style={"paddingTop": ".5em"},
                 ),
             ]

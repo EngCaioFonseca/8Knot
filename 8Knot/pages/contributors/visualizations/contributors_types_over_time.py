@@ -7,7 +7,7 @@ import pandas as pd
 import logging
 import numpy as np
 import plotly.express as px
-from pages.utils.graph_utils import get_graph_time_values, baby_blue
+from pages.utils.graph_utils import get_graph_time_values, baby_blue, create_share_button
 from pages.utils.job_utils import nodata_graph
 from queries.contributors_query import contributors_query as ctq
 import time
@@ -42,6 +42,7 @@ gc_contributors_over_time = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",
