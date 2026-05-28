@@ -600,15 +600,17 @@ def wait_queries(job_ids):
 @callback(
     Output("job-ids", "data"),
     Input("repo-choices", "data"),
+    Input("share-load-trigger", "data"),
     State("search", "n_clicks"),
 )
-def run_queries(repos, n_clicks):
+def run_queries(repos, share_trigger, n_clicks):
     """
     Executes queries defined in /queries against Augur
     instance for input Repos; caches results in Postgres.
 
     Args:
         repos ([int] | None): repositories we collect data for.
+        share_trigger: set to True by handle_share_url_load to bypass search-button guard.
         n_clicks (int | None): number of times search button was clicked
     """
 
@@ -616,9 +618,12 @@ def run_queries(repos, n_clicks):
     if not repos:
         return []
 
-    # Don't run queries until user actually clicks the search button
-    # This prevents expensive startup queries for the default selection
-    if not n_clicks or n_clicks == 0:
+    triggered = ctx.triggered_id if ctx.triggered_id else ""
+
+    # Bypass the search-button guard when the trigger came from a shared URL.
+    # Otherwise, require an explicit search button click to avoid expensive
+    # startup queries for the default selection.
+    if triggered != "share-load-trigger" and (not n_clicks or n_clicks == 0):
         logging.warning("RUN_QUERIES: Skipping queries until search button is clicked")
         return []
 
@@ -808,6 +813,7 @@ else:
 @callback(
     Output("repo-choices", "data", allow_duplicate=True),
     Output("url", "pathname", allow_duplicate=True),
+    Output("share-load-trigger", "data"),
     Output("share-load-toast", "is_open"),
     Output("share-load-toast", "children"),
     Input("url", "search"),
@@ -820,18 +826,18 @@ def handle_share_url_load(search, pathname):
     raw_state = params["state"]
 
     if not short_id and not raw_state:
-        return dash.no_update, dash.no_update, False, ""
+        return dash.no_update, dash.no_update, dash.no_update, False, ""
 
     # Resolve short ID → encoded state string (DB lookup)
     if short_id:
         raw_state = share_manager.expand(short_id)
         if raw_state is None:
-            return dash.no_update, dash.no_update, True, "This share link has expired or could not be found."
+            return dash.no_update, dash.no_update, dash.no_update, True, "This share link has expired or could not be found."
 
     # Decode state blob (works for both ?s= and ?state= paths)
     state = url_state.decode_state(raw_state)
     if state is None:
-        return dash.no_update, dash.no_update, True, "This share link uses an outdated format and cannot be loaded."
+        return dash.no_update, dash.no_update, dash.no_update, True, "This share link uses an outdated format and cannot be loaded."
 
     target_path = state.get("pathname", "/")
     graph_id = state.get("graph_id")
@@ -841,10 +847,34 @@ def handle_share_url_load(search, pathname):
     if not is_valid:
         if redirect:
             new_path, _ = redirect
-            return repo_ids, new_path, True, "This visualization has moved. Redirecting to its new location."
-        return dash.no_update, "/", True, "The visualization in this share link no longer exists."
+            return repo_ids, new_path, True, True, "This visualization has moved. Redirecting to its new location."
+        return dash.no_update, "/", dash.no_update, True, "The visualization in this share link no longer exists."
 
-    return repo_ids, target_path, False, ""
+    # Success: navigate, trigger query dispatch.
+    # URL search params (?s= / ?state=) are cleared by the clientside callback below.
+    return repo_ids, target_path, True, False, ""
+
+
+# Clientside callback: clears ?s= / ?state= from the URL bar after the share
+# state has been loaded server-side. Uses replaceState so there's no new history
+# entry and no Dash navigation event is triggered.
+dash.clientside_callback(
+    """
+    function(trigger) {
+        if (trigger) {
+            var url = new URL(window.location.href);
+            if (url.searchParams.has('s') || url.searchParams.has('state')) {
+                url.search = '';
+                window.history.replaceState({}, '', url.toString());
+            }
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("share-url-store", "data", allow_duplicate=True),
+    Input("share-load-trigger", "data"),
+    prevent_initial_call=True,
+)
 
 
 # ---------------------------------------------------------------------------
