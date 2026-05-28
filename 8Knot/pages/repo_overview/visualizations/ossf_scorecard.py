@@ -9,6 +9,7 @@ from queries.ossf_score_query import ossf_score_query as osq
 import io
 import cache_manager.cache_facade as cf
 from pages.utils.job_utils import nodata_graph
+from pages.utils.graph_utils import create_share_button
 import time
 from datetime import datetime
 
@@ -37,6 +38,7 @@ gc_ossf_scorecard = dbc.Card(
                             ),
                             width="auto",
                         ),
+                        create_share_button(PAGE, VIZ_ID),
                     ],
                     align="center",
                     justify="between",

@@ -52,6 +52,17 @@ class VisualizationAIO(dbc.Card):
                                     ),
                                     width="auto",
                                 ),
+                                dbc.Col(
+                                    dbc.Button(
+                                        [html.I(className="bi bi-share me-1"), "Share"],
+                                        id={"type": "share-btn", "graph": f"{page}-{viz_id}", "page": page},
+                                        color="outline-secondary",
+                                        size="sm",
+                                        className="share-graph-btn",
+                                        title="Copy a short link to this graph with the current repo selection",
+                                    ),
+                                    width="auto",
+                                ),
                             ],
                             align="center",
                             justify="between",

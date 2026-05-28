@@ -34,6 +34,9 @@ import redis
 import flask
 from .search_utils import fuzzy_search
 from .search_utils import clean_repo_name
+import cache_manager.url_state as url_state
+import cache_manager.share_manager as share_manager
+from pages.utils.url_utils import validate_target, extract_url_params, compose_short_url, MAX_REPOS_PER_SHARE
 
 # list of queries to be run (includes codebase page queries for heatmaps)
 # affiliation_query is last because its 3-way JOIN + GROUP BY is the slowest query;
@@ -897,3 +900,130 @@ def update_pill_color_on_search(search_button_clicks, selected_repos_orgs):
         return "searchbar-dropdown"
 
     return dash.no_update
+
+
+# =============================================================================
+# Share-URL callbacks
+# =============================================================================
+
+
+@callback(
+    [
+        Output("repo-choices", "data", allow_duplicate=True),
+        Output("url", "pathname", allow_duplicate=True),
+        Output("share-load-trigger", "data"),
+        Output("share-load-toast", "is_open"),
+        Output("share-load-toast", "children"),
+    ],
+    Input("url", "search"),
+    prevent_initial_call=True,
+)
+def handle_share_url_load(search):
+    """Decode a share URL (?s=<id> or ?state=<blob>) and restore app state."""
+    params = extract_url_params(search)
+    if not params:
+        return dash.no_update, dash.no_update, dash.no_update, False, ""
+
+    encoded = None
+    if "short_id" in params:
+        encoded = share_manager.expand(params["short_id"])
+        if encoded is None:
+            return dash.no_update, dash.no_update, dash.no_update, True, "Share link not found or expired."
+    elif "state" in params:
+        encoded = params["state"]
+
+    if not encoded:
+        return dash.no_update, dash.no_update, dash.no_update, False, ""
+
+    state = url_state.decode_state(encoded)
+    if state is None:
+        return dash.no_update, dash.no_update, dash.no_update, True, "Share link is invalid or from an incompatible version."
+
+    repo_ids = state.get("repo_ids", [])
+    pathname = state.get("pathname", dash.no_update)
+    graph_id = state.get("graph_id", "")
+
+    if len(repo_ids) > MAX_REPOS_PER_SHARE:
+        repo_ids = repo_ids[:MAX_REPOS_PER_SHARE]
+
+    return repo_ids, pathname, graph_id, True, f"Loaded shared graph: {graph_id}"
+
+
+@callback(
+    [
+        Output("share-url-store", "data"),
+        Output("share-url-display", "value"),
+        Output("share-modal", "is_open"),
+    ],
+    Input({"type": "share-btn", "graph": dash.ALL, "page": dash.ALL}, "n_clicks"),
+    [
+        State("repo-choices", "data"),
+        State("url", "pathname"),
+        State("url", "href"),
+    ],
+    prevent_initial_call=True,
+)
+def create_share_link(n_clicks_list, repo_ids, pathname, href):
+    """Mint a short share URL when any Share button is clicked."""
+    if not any(n for n in n_clicks_list if n):
+        return dash.no_update, dash.no_update, False
+
+    triggered = dash.ctx.triggered_id
+    if triggered is None:
+        return dash.no_update, dash.no_update, False
+
+    graph_id = triggered.get("graph", "")
+    if not validate_target(pathname, graph_id):
+        logging.warning(f"share: invalid target {pathname}#{graph_id}")
+        return dash.no_update, dash.no_update, False
+
+    if not repo_ids:
+        return dash.no_update, "", True
+
+    encoded = url_state.encode_state(
+        repo_ids=repo_ids,
+        org_names=[],
+        pathname=pathname,
+        graph_id=graph_id,
+    )
+
+    try:
+        short_id = share_manager.shorten(encoded)
+        base_url = href.split("?")[0].rstrip("/").rsplit(pathname, 1)[0] if pathname != "/" else href.rstrip("/")
+        short_url = compose_short_url(base_url, short_id, pathname, graph_id)
+    except Exception as e:
+        logging.error(f"share: failed to shorten: {e}")
+        short_url = f"{href.rstrip('/')}?state={encoded}#{graph_id}"
+
+    return short_url, short_url, True
+
+
+@callback(
+    Output("share-modal", "is_open", allow_duplicate=True),
+    Input("share-modal-close", "n_clicks"),
+    prevent_initial_call=True,
+)
+def close_share_modal(n):
+    if n:
+        return False
+    return dash.no_update
+
+
+# Clear share params from the URL after they are processed so that
+# browser back/forward and page refreshes don't re-trigger the load.
+dash.clientside_callback(
+    """
+    function(trigger) {
+        if (trigger) {
+            var url = new URL(window.location.href);
+            url.searchParams.delete('s');
+            url.searchParams.delete('state');
+            window.history.replaceState({}, '', url.toString());
+        }
+        return window.dash_clientside.no_update;
+    }
+    """,
+    Output("share-load-trigger", "data", allow_duplicate=True),
+    Input("share-load-trigger", "data"),
+    prevent_initial_call=True,
+)

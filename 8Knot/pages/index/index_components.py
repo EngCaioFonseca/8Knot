@@ -272,6 +272,8 @@ def create_app_stores():
         dcc.Store(id="job-ids", storage_type="session", data=[]),
         dcc.Store(id="user-group-loading-signal", data="", storage_type="memory"),
         dcc.Location(id="url"),
+        dcc.Store(id="share-url-store"),
+        dcc.Store(id="share-load-trigger"),
     ]
 
 

@@ -421,6 +421,26 @@ def _create_application_tables() -> None:
         )
         logging.warning("CREATED cache_bookkeeping TABLE")
 
+        cur.execute(
+            """
+            CREATE UNLOGGED TABLE IF NOT EXISTS share_links(
+                short_id     varchar(16)  PRIMARY KEY,
+                full_state   text         NOT NULL,
+                created_at   timestamp    NOT NULL DEFAULT NOW(),
+                last_accessed timestamp,
+                access_count int          NOT NULL DEFAULT 0,
+                expires_at   timestamp    NOT NULL DEFAULT (NOW() + INTERVAL '90 days')
+            )
+            """
+        )
+        cur.execute(
+            """
+            CREATE INDEX IF NOT EXISTS share_links_expires_idx
+                ON share_links (expires_at)
+            """
+        )
+        logging.warning("CREATED share_links TABLE")
+
         # commit changes, all-or-nothing.
         conn.commit()
 

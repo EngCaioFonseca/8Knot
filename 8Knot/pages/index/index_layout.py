@@ -109,6 +109,41 @@ initialize_components(search_bar)
 # Note: Index layout provides the main application structure
 # The landing page is now registered separately in pages/landing/landing.py
 
+# Share modal - shown when user clicks a Share button
+share_modal = dbc.Modal(
+    [
+        dbc.ModalHeader(dbc.ModalTitle("Share this graph")),
+        dbc.ModalBody(
+            [
+                dbc.Label("Copy the link below to share this graph with the current repo selection:"),
+                dbc.InputGroup(
+                    [
+                        dbc.Input(id="share-url-display", readonly=True, className="share-url-input"),
+                        dcc.Clipboard(
+                            target_id="share-url-display",
+                            title="Copy link",
+                            style={"display": "inline-flex", "alignItems": "center", "padding": "0.375rem 0.75rem"},
+                        ),
+                    ]
+                ),
+            ]
+        ),
+        dbc.ModalFooter(dbc.Button("Close", id="share-modal-close", className="ms-auto")),
+    ],
+    id="share-modal",
+    is_open=False,
+)
+
+# Toast shown when a share URL is loaded successfully
+share_load_toast = dbc.Toast(
+    id="share-load-toast",
+    header="Graph loaded from shared link",
+    is_open=False,
+    dismissable=True,
+    duration=4000,
+    style={"position": "fixed", "top": 66, "right": 10, "width": 350, "zIndex": 9999},
+)
+
 # Main application layout
 layout = html.Div(
     dbc.Container(
@@ -116,6 +151,9 @@ layout = html.Div(
             # Application stores and scripts
             *create_app_stores(),
             create_storage_quota_script(),
+            # Share UI overlays
+            share_modal,
+            share_load_toast,
             # Login banner overlay
             login_banner if login_banner else html.Div(),
             # Main application structure
